@@ -16,9 +16,6 @@ set.seed(823)
 # Number of rows in the dataset
 n <- 1000
 
-# Generate book titles (simulated as generic titles)
-titles <- paste("Book", 1:n)
-
 # Generate cover types
 covers <- sample(c("Hardcover", "Paperback"), n, replace = TRUE)
 
@@ -32,12 +29,12 @@ original_publish_year <- sample(1900:2023, n, replace = TRUE)
 rating <- round(runif(n, min = 1, max = 5), 2)
 
 # Create dataframe
-data <- data.frame(titles, covers, pages, original_publish_year, rating)
+data <- data.frame(covers, pages, original_publish_year, rating)
 
 # View the first few rows of the dataset
 head(data)
 
 # Save the dataset to a CSV file
-write.csv(data, "data/analysis_data/simulate_data.csv", row.names = FALSE)
+write_parquet(data, "data/analysis_data/simulate_data.parquet")
 
 
