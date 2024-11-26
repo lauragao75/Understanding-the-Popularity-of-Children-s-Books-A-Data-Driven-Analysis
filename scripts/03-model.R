@@ -1,37 +1,28 @@
 #### Preamble ####
-# Purpose: Models... [...UPDATE THIS...]
-# Author: Rohan Alexander [...UPDATE THIS...]
-# Date: 11 February 2023 [...UPDATE THIS...]
-# Contact: rohan.alexander@utoronto.ca [...UPDATE THIS...]
+# Purpose: Simple linear regression model for children's book ratings
+# Author: Zien Gao
+# Date: November 26th 2024
+# Contact: lauragao75@gmail.com
 # License: MIT
-# Pre-requisites: [...UPDATE THIS...]
-# Any other information needed? [...UPDATE THIS...]
-
+# Pre-requisites: Run 01-clean_data.R
 
 #### Workspace setup ####
 library(tidyverse)
-library(rstanarm)
+library(arrow)
 
-#### Read data ####
-analysis_data <- read_csv("data/analysis_data/analysis_data.csv")
+#### Read the data and create model ####
+# Read the cleaned analysis dataset
+analysis_data <- read_parquet("data/analysis_data/clean_books_data.parquet")
 
-### Model data ####
-first_model <-
-  stan_glm(
-    formula = flying_time ~ length + width,
-    data = analysis_data,
-    family = gaussian(),
-    prior = normal(location = 0, scale = 2.5, autoscale = TRUE),
-    prior_intercept = normal(location = 0, scale = 2.5, autoscale = TRUE),
-    prior_aux = exponential(rate = 1, autoscale = TRUE),
-    seed = 853
+# Fit a simple linear regression model
+simple_model <-
+  lm(
+    rating ~ covers + pages_range + publish_period,
+    data = analysis_data
   )
-
 
 #### Save model ####
 saveRDS(
-  first_model,
-  file = "models/first_model.rds"
+  simple_model,
+  file = "models/simple_model.rds"
 )
-
-
