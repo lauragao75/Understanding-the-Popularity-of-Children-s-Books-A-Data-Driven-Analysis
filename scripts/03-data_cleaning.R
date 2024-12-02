@@ -1,24 +1,12 @@
-#### Preamble ####
-# Purpose: Cleans the simulated children's book ratings dataset
-# Author: Zien Gao
-# Date: November 26th 2024
-# Contact: lauragao75@gmail.com
-# License: MIT
-# Pre-requisites: Install the 'tidyverse' and 'arrow' libraries
-
-#### Workspace setup ####
-library(tidyverse)
-library(arrow)
-
 #### Load and clean data ####
 # Read the simulated data
-books <- read.csv("data/analysis_data/simulate_data.csv")
+books <- read_delim("data/raw_data/childrens-books.txt", delim = "\t")
 
 # Select relevant columns
 books_clean <- books %>%
-  select(covers, pages, original_publish_year, rating) %>%
+  select(all_of(c("cover", "pages", "original_publish_year", "rating"))) %>%
   filter(!is.na(pages), !is.na(rating), rating <= 5, rating >= 0) %>% # Ensure rating is between 0 and 5
-  filter(covers %in% c("Hardcover", "Paperback")) %>% # Filter to include only Hardcover and Paperback for easier analysis
+  filter(cover %in% c("Hardcover", "Paperback")) %>% # Filter to include only Hardcover and Paperback for easier analysis
   mutate(
     # Create page range categories
     pages_range = case_when(
@@ -38,9 +26,9 @@ books_clean <- books %>%
       TRUE ~ as.character(original_publish_year)
     )
   ) %>%
+  filter(!is.na(publish_period)) %>%  # Remove rows with NA in publish_period
   # Select final columns
-  select(covers, pages_range, publish_period, rating)
+  select(cover, pages_range, publish_period, rating)
 
 #### Save the cleaned data ####
 write_parquet(books_clean, "data/analysis_data/clean_books_data.parquet")
-

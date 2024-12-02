@@ -17,7 +17,7 @@ analysis_data <- read_parquet("data/analysis_data/clean_books_data.parquet")
 # Fit a simple linear regression model
 simple_model <-
   lm(
-    rating ~ covers + pages_range + publish_period,
+    rating ~ cover + pages_range + publish_period,
     data = analysis_data
   )
 
