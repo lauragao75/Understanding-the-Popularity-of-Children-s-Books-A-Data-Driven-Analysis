@@ -1,3 +1,15 @@
+#### Preamble ####
+# Purpose: Cleans the children's book ratings dataset
+# Author: Zien Gao
+# Date: November 26th 2024
+# Contact: lauragao75@gmail.com
+# License: MIT
+# Pre-requisites: Install the 'tidyverse' and 'arrow' libraries
+
+#### Workspace setup ####
+library(tidyverse)
+library(arrow)
+
 #### Load and clean data ####
 # Read the simulated data
 books <- read_delim("data/raw_data/childrens-books.txt", delim = "\t")

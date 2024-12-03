@@ -4,7 +4,7 @@
 # Date: November 26th 2024
 # Contact: lauragao75@gmail.com
 # License: MIT
-# Pre-requisites: Run 01-clean_data.R
+# Pre-requisites: Run 03-clean_data.R, and install the 'rstanarm' library
 
 #### Workspace setup ####
 library(tidyverse)

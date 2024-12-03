@@ -1,6 +1,6 @@
 ---
-title: "Understanding the Popularity of Children's Books: A Data-Driven Analysis"
-subtitle: "A Data-Driven Analysis of Cover Type, Page Count, and Publication Period"
+title: "Understanding the Ratings of Children's Books: A Data-Driven Analysis"
+subtitle: "Exploring the Impact of Cover Type, Page Count, and Publication Period on Children's Book Ratings"
 author: Zien Gao
 thanks: "Code and data supporting this analysis are available at: <https://github.com/lauragao75/Understanding-the-Popularity-of-Children-s-Books-A-Data-Driven-Analysis>"
 date: today
@@ -336,7 +336,7 @@ Finally, incorporating qualitative data, such as reader reviews, could help capt
 \newpage
 \appendix
 
-# Appendix - Model Details {#sec-model-details}
+# Appendix: Model Details {#sec-model-details}
 
 ## Regression Model Summary
 
@@ -422,6 +422,118 @@ Posterior density plots provide a visual representation of the uncertainty in th
 
 plot(children_model, plotfun = "dens")
 ```
+
+\newpage
+
+
+# Appendix: Survey and Sampling Methodology in Children's Book Ratings Analysis
+
+## Overview of Children's Book Ratings Dataset and Its Significance
+
+The dataset[@dataset] used in this study, focused on children's book ratings, plays an important role in understanding the elements that make children's literature more appealing. The data, collected from online ratings and reviews, provides valuable insights into what readers—often parents or educators—find most engaging or high-quality in children's books. However, being sourced from an open online platform, the dataset carries inherent limitations, particularly concerning the sampling methodology and data collection biases.
+
+## Data Collection and Challenges
+
+The ratings data are observational in nature and were gathered without a structured survey framework. Instead, data collection relied on voluntary participation by readers rating and reviewing books online. This voluntary nature of participation presents several challenges, primarily due to the self-selection bias—those who choose to leave reviews may differ systematically from those who do not. For instance, individuals who provide ratings might be particularly passionate about children's books, leading to an overrepresentation of extreme opinions (either very positive or negative). This limits the ability to generalize findings to the broader population of book readers.
+
+## Stratified Sampling as an Ideal Approach
+
+In an ideal scenario, a stratified sampling methodology would be employed to ensure the diversity of respondents, capturing the full spectrum of reader demographics. Stratified sampling involves dividing the population into subgroups (or strata) based on specific characteristics, such as age, reading frequency, and geographic location, and then sampling from each subgroup. This would ensure that the sample is representative of all reader groups, not just those who are the most vocal online. Such an approach would mitigate the risk of over-representing highly engaged readers and help provide a more balanced view of the factors influencing book ratings.
+
+## Addressing Non-Response Bias
+
+Non-response bias is another critical issue in observational datasets like ours. To address this, future studies could implement weighting adjustments to correct for underrepresented groups. For instance, if younger readers or readers from specific socioeconomic backgrounds are less likely to provide ratings, their responses could be weighted more heavily to reflect their actual proportion in the reader population. This technique would help adjust for disparities in participation rates and lead to more accurate estimations of the factors driving book ratings.
+
+## Limitations of Observational Data
+
+The challenges associated with observational data are well-documented in the literature. Rubin discusses the difficulty of drawing causal conclusions from observational studies without experimental control [@rubin1974causal]. Cochran also highlights the limitations of survey data, noting the importance of understanding biases when interpreting results [@cochran1977sampling]. Given these challenges, it is crucial to interpret the findings from our study with caution, acknowledging that correlations between book attributes and ratings do not imply causation.
+
+## Recommendations for Future Research
+
+For future research, we recommend the development of a more structured survey methodology, incorporating stratified sampling and weighting adjustments to improve the representativeness of the dataset. Additionally, including more detailed questions regarding reader motivations, reading habits, and book preferences could provide deeper insights into the factors influencing ratings. Such improvements would not only enhance the quality of the data but also make the findings more actionable for publishers, authors, and educators interested in understanding and improving children's literature.
+
+\newpage
+
+# Appendix: Datasheet for the Children's Books Ratings Dataset
+
+## Dataset Overview
+
+The Children's Books Ratings Dataset contains metadata about children's books, focusing on attributes such as cover type, page count, publication period, and ratings. This dataset was derived from a raw dataset[@dataset] originally created by Alex Cookson and subsequently cleaned and processed by Zien Gao for analysis. The main goal of the dataset is to provide insights into the factors that contribute to higher book ratings, which can help stakeholders like publishers, authors, and parents in selecting and promoting well-received children's books.
+
+## Motivation
+
+The dataset was created to fill a gap in the understanding of which specific features of children's books are most strongly associated with higher ratings. Despite the vast amount of children's literature available, there has been limited empirical research on which attributes, such as cover type or page length, contribute to a book's popularity. By analyzing this data, stakeholders can make informed decisions that align with reader preferences.
+
+## Intended Use
+
+This dataset can be used for:
+
+- **Publishers and Authors**: To understand market preferences and make data-driven decisions to enhance the appeal of children's books.
+
+- **Parents and Educators**: To identify books that are more likely to be well-received by children.
+
+- **Researchers**: For academic purposes and to explore patterns in children's book ratings.
+
+## Composition
+
+The dataset consists of individual entries, with each row representing a children's book. Key features include:
+
+- **Cover Type**: Indicates whether the book is a hardcover or paperback.
+
+- **Pages Range**: Number of pages, categorized into: "Under 50", "50-149", "150-299", "300-499", and "500 and above".
+
+- **Publication Period**: Original publication year categorized as: "Before 1950", "1950-1979", "1980-1999", "2000 and after".
+
+- **Rating**: A numerical value between 0 and 5, representing the average reader rating.
+
+## Collection Process
+
+The original dataset[@dataset] was compiled by Alex Cookson and made available on GitHub. The data was manually curated and then processed to focus on key features that influence book ratings. The cleaned dataset retains all relevant information needed for effective analysis while discarding unnecessary or redundant fields.
+
+## Preprocessing and Cleaning
+
+The data was cleaned and preprocessed by Zien Gao using R[@R], utilizing libraries such as `tidyverse`[@tidyverse] and `arrow`[@arrow]. The cleaning process involved categorizing variables, handling missing values, and ensuring consistency. The dataset underwent several preprocessing steps to ensure data quality:
+
+- **Handling Missing Values**: Entries with missing or invalid values were removed.
+
+- **Categorization**: The **Pages Range** and **Publication Period** attributes were categorized for easier analysis.
+
+- **Data Storage**: The cleaned dataset is stored in `.parquet` format for efficient storage and use.
+
+
+## Potential Biases and Limitations
+
+- **Sampling Bias**: The dataset may reflect biases inherent in the original data collection, such as an overrepresentation of popular or well-marketed books.
+
+- **Limited Attributes**: Only a limited set of book attributes are included, which may not capture all factors influencing book ratings. Features like genre or author popularity are absent.
+
+- **Subjectivity of Ratings**: Ratings are subjective and may vary widely among different readers, making it challenging to draw definitive conclusions.
+
+## Ethical Considerations
+
+- **Privacy**: The dataset does not contain any personal or identifiable information, ensuring that there are no privacy concerns.
+
+- **Responsible Use**: Users should avoid making broad generalizations from the dataset, as ratings are subjective and may not represent all reader demographics.
+
+## Maintenance
+
+- **Updates**: There are currently no plans for updates, but future versions could include more attributes or expanded datasets to improve the analysis.
+
+- **Contact**: For any inquiries, please contact Zien Gao via lauragao75@gmail.com.
+
+## Structure and Access
+
+- **File Format**: The dataset(`clean_books_data.parquet`) is saved in `.parquet` format.
+
+- **Access**: Available in the GitHub repository associated with this project, under the folder `data/analysis_data/`.
+
+
+## Future Improvements
+
+- **Expanded Features**: Future iterations could include additional attributes like book genre, marketing data, or author information to provide deeper insights.
+
+- **Comprehensive Data Collection**: Collecting a broader set of data from diverse sources would provide a more complete understanding of factors that drive book ratings.
+
 
 \newpage
 
