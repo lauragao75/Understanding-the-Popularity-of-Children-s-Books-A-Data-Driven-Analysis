@@ -9,20 +9,26 @@
 #### Workspace setup ####
 library(tidyverse)
 library(arrow)
+library(rstanarm)
 
 #### Read the data and create model ####
 # Read the cleaned analysis dataset
 analysis_data <- read_parquet("data/analysis_data/clean_books_data.parquet")
 
-# Fit a simple linear regression model
-simple_model <-
-  lm(
-    rating ~ cover + pages_range + publish_period,
-    data = analysis_data
-  )
+# Fit Bayesian hierarchical linear model
+data_model <- stan_glm(
+  rating ~ cover + pages_range + publish_period,
+  data = analysis_data,
+  family = gaussian(),
+  prior = normal(0, 2.5),
+  prior_intercept = normal(0, 2.5),
+  chains = 4,
+  iter = 2000,
+  seed = 123
+)
 
 #### Save model ####
 saveRDS(
-  simple_model,
-  file = "models/simple_model.rds"
+  data_model,
+  file = "models/model.rds"
 )
