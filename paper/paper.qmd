@@ -2,7 +2,7 @@
 title: "Understanding the Ratings of Children's Books: A Data-Driven Analysis"
 subtitle: "Exploring the Impact of Cover Type, Page Count, and Publication Period on Children's Book Ratings"
 author: Zien Gao
-thanks: "Code and data supporting this analysis are available at: <https://github.com/lauragao75/Understanding-the-Popularity-of-Children-s-Books-A-Data-Driven-Analysis>"
+thanks: "Code and data supporting this analysis are available at: <https://github.com/lauragao75/Understanding-the-Ratings-of-Children-s-Books-A-Data-Driven-Analysis>"
 date: today
 date-format: long
 abstract: "This study investigates the factors influencing children's book ratings, focusing on attributes such as cover type, page count, and publication period. Using simulated and cleaned datasets from various sources, we applied a Bayesian hierarchical linear model to explore these relationships comprehensively. We estimate that hardcover books, books in the 150-299 and 300-499 page ranges, and books published after 2000 have notably higher ratings, providing a clear indication of preferences in children's literature. These insights are critical for publishers, authors, and parents in making informed decisions about book design and selection. The findings highlight important characteristics that contribute to well-received children's literature, aiming to enhance both quality and reader satisfaction."
@@ -18,6 +18,7 @@ bibliography: references.bib
 #| message: false
 
 #### Workspace setup ####
+library(bayesplot)
 library(broom)
 library(tidyverse)
 library(dplyr)
@@ -48,13 +49,12 @@ The paper is organized into four main sections. @sec-data describes the dataset,
 
 # Data {#sec-data}
 
-## Overview
 
 ## Data Overview
 
 We use the statistical programming language R [@R] to generate, clean, and analyze the dataset. Our data, sourced from the children's book ratings dataset hosted on GitHub by Timothy A. Cookson [@dataset], includes metadata such as cover type, publisher, and ratings. The dataset contains information like ISBN, title, author, cover type, pages, and rating, which form the basis for our analysis. We focus on attributes that may influence book ratings, such as the type of cover, number of pages, and the original year of publishing.
 
-The libraries used in our analysis include `tidyverse` [@tidyverse], `arrow` [@arrow], `broom` [@broom], `ggplot2` [@ggplot2], `knitr` [@knitr], `kableExtra` [@kableExtra], `here` [@here], and `modelsummary` [@modelsummary]. These libraries enable data manipulation, model building, and visualization, ensuring a comprehensive examination of the dataset to explore relationships between book characteristics and ratings.
+The libraries used in our analysis include `tidyverse` [@tidyverse], `arrow` [@arrow], `broom` [@broom], `ggplot2` [@ggplot2], `knitr` [@knitr], `kableExtra` [@kableExtra], `here` [@here], `bayesplot` [@bayesplot], `broom.mixed` [@broommixed], `coda` [@coda] and `modelsummary` [@modelsummary]. These libraries enable data manipulation, model building, and visualization, ensuring a comprehensive examination of the dataset to explore relationships between book characteristics and ratings.
 
 
 ## Measurement
@@ -82,8 +82,10 @@ The **ratings** variable represents the average score given to each book, rangin
 
 ```{r}
 #| label: fig-ratings-distribution
-#| fig-cap: Distribution of Children's Book Ratings. Shows how the ratings of children's books are generally skewed towards higher values, indicating a general satisfaction with the literature available.
+#| fig-cap: "Distribution of Children's Book Ratings. Shows how the ratings of children's books are generally skewed towards higher values, indicating a general satisfaction with the literature available."
 #| echo: false
+#| warning: false
+#| message: false
 
 ggplot(analysis_data, aes(x = rating)) +
   geom_histogram(binwidth = 0.2, fill = "skyblue", color = "black", alpha = 0.7) +
@@ -91,7 +93,7 @@ ggplot(analysis_data, aes(x = rating)) +
   labs(x = "Rating (out of 5)", y = "Frequency")
 ```
 
-@fig-ratings-distribution shows the distribution of ratings across all books in the dataset. We observe that most books tend to have relatively high ratings, clustering around values between 3.5 and 5. This skew towards higher ratings may indicate a general satisfaction with the books or potential bias in how ratings are assigned.
+@fig-ratings-distribution shows the distribution of ratings across all books in the dataset. We observe that most books tend to have relatively high ratings, clustering around values between 3.5 and 4.5. This skew towards higher ratings may indicate a general satisfaction with the books or potential bias in how ratings are assigned.
 
 ## Predictor Variables
 
@@ -103,8 +105,10 @@ The **cover type** variable represents whether a book is in "Hardcover" or "Pape
 
 ```{r}
 #| label: fig-cover-ratings
-#| fig-cap: Relationship Between Book Ratings and Cover Type. Illustrates that hardcover books tend to receive slightly higher ratings compared to paperback editions, potentially due to their perceived durability and premium quality.
+#| fig-cap: "Relationship Between Book Ratings and Cover Type. Illustrates that hardcover books tend to receive slightly higher ratings compared to paperback editions, potentially due to their perceived durability and premium quality."
 #| echo: false
+#| warning: false
+#| message: false
 
 # Adding jitter points to show individual data points
 ggplot(analysis_data, aes(x = cover, y = rating, fill = cover)) +
@@ -123,8 +127,10 @@ ggplot(analysis_data, aes(x = cover, y = rating, fill = cover)) +
 
 ```{r}
 #| label: fig-page-range-ratings
-#| fig-cap: Average Ratings by Page Range. Indicates that books with 150-299 pages are more likely to receive higher ratings, potentially reflecting a balance between story depth and accessibility for children.
+#| fig-cap: "Average Ratings by Page Range. Indicates that books with 150-299 pages are more likely to receive higher ratings, potentially reflecting a balance between story depth and accessibility for children."
 #| echo: false
+#| warning: false
+#| message: false
 
 # Adding jitter points to show individual data points
 ggplot(analysis_data, aes(x = pages_range, y = rating, fill = pages_range)) +
@@ -145,8 +151,10 @@ Books published in different time periods may reflect changing styles, themes, a
 
 ```{r}
 #| label: fig-pub-period-ratings
-#| fig-cap: Average Ratings by Publication Period. Highlights that books published after 2000 tend to have higher ratings, possibly reflecting evolving preferences and improved production standards.
+#| fig-cap: "Average Ratings by Publication Period. Highlights that books published after 2000 tend to have higher ratings, possibly reflecting evolving preferences and improved production standards."
 #| echo: false
+#| warning: false
+#| message: false
 
 # Adding jitter points to show individual data points
 ggplot(analysis_data, aes(x = publish_period, y = rating, fill = publish_period)) +
@@ -163,7 +171,7 @@ ggplot(analysis_data, aes(x = publish_period, y = rating, fill = publish_period)
 
 ## Summary
 
-Overall, we observe interesting patterns between book attributes and ratings. The physical characteristics of books, such as cover type and length, appear to play a role in how well they are rated. Similarly, the time of publication also seems to impact the perceived quality of a book. These insights suggest that certain characteristics may enhance a book's appeal, providing valuable information for authors and publishers seeking to create well-received children’s books.
+Overall, we observe interesting patterns between book attributes and ratings. The physical characteristics of books, such as cover type and length, appear to play a role in how well they are rated. Similarly, the time of publication also seems to impact the perceived quality of a book. 
 
 \newpage
 
@@ -203,21 +211,20 @@ The Bayesian hierarchical linear model makes several assumptions that should be 
 
 ## Model Set-up
 
-Define \(y_i\) as the average rating for book \(i\). Then \(eta_1\) represents the effect of cover type, \(eta_2\) represents the effect of page range, and \(eta_3\) represents the effect of publication period.  
+Define $y_i$ as the average rating for book $i$. Then $\eta_1$ represents the effect of cover type, $\eta_2$ represents the effect of page range, and $\eta_3$ represents the effect of publication period.  
 
-```{=tex}
-\[
-egin{align} 
-y_i|\mu_i, \sigma &\sim \mbox{Normal}(\mu_i, \sigma) \\
-\mu_i &= \alpha + eta_1(CoverType_i) + eta_2(PageRange_i) + eta_3(PublicationPeriod_i) \\
-\alpha &\sim \mbox{Normal}(0, 2.5) \\
-eta_1 &\sim \mbox{Normal}(0, 2.5) \\
-eta_2 &\sim \mbox{Normal}(0, 2.5) \\
-eta_3 &\sim \mbox{Normal}(0, 2.5) \\
-\sigma &\sim \mbox{Exponential}(1)
+
+\begin{align}
+y_i \mid \mu_i, \sigma &\sim \text{Normal}(\mu_i, \sigma) \\
+\mu_i &= \alpha + \eta_1(\text{CoverType}_i) + \eta_2(\text{PageRange}_i) + \eta_3(\text{PublicationPeriod}_i) \\
+\alpha &\sim \text{Normal}(0, 2.5) \\
+\eta_1 &\sim \text{Normal}(0, 2.5) \\
+\eta_2 &\sim \text{Normal}(0, 2.5) \\
+\eta_3 &\sim \text{Normal}(0, 2.5) \\
+\sigma &\sim \text{Exponential}(1)
 \end{align}
-\]
-```
+
+
 
 We run the model in R [@R] using the `rstanarm` package [@rstanarm]. We use the default priors from `rstanarm`. 
 
@@ -237,41 +244,49 @@ The summary statistics for our model parameters, presented in the appendix (Appe
 
 ### Summary Statistics
 
-To provide context for the model results, we present some key summary statistics of the dataset used in the analysis. This includes the average rating, distribution of book types, and the breakdown of page ranges and publication periods.
+To provide context for the model results, we present some key summary statistics of the dataset used in the analysis. @tbl-summary-table includes the average rating, distribution of book types, and the breakdown of page ranges and publication periods.
 
 ```{r}
-#| label: tbl-summary-statistics
+#| label: tbl-summary-table
 #| echo: false
-#| tbl-cap: "Summary statistics of the children's book dataset"
+#| tbl-cap: "Summary statistics of the children's book dataset, showing the distribution of key metrics such as average rating, book cover types, page ranges, and publication periods."
 
 library(dplyr)
+library(ggplot2)
+library(knitr)
+library(tidyr)
+
+# Function to create count summaries
+create_count_summary <- function(data, count_column, prefix) {
+  data %>%
+    count({{ count_column }}) %>%
+    rename(Metric = {{ count_column }}, Value = n) %>%
+    mutate(Metric = paste(prefix, Metric, sep = ": "))
+}
+
+# Summary statistics
 summary_stats <- analysis_data %>%
   summarise(
     `Average Rating` = round(mean(rating, na.rm = TRUE), 2),
     `Number of Hardcover Books` = sum(cover == "Hardcover"),
     `Number of Paperback Books` = sum(cover == "Paperback")
-  )
+  ) %>%
+  pivot_longer(everything(), names_to = "Metric", values_to = "Value")
 
-# Get counts for page ranges and publication periods
-pages_range_count <- analysis_data %>%
-  count(pages_range) %>%
-  rename(Metric = pages_range, Value = n) %>%
-  mutate(Metric = paste("Page Range:", Metric))
+# Page range and publication period counts
+pages_range_count <- create_count_summary(analysis_data, pages_range, "Page Range")
+publish_period_count <- create_count_summary(analysis_data, publish_period, "Publication Period")
 
-publish_period_count <- analysis_data %>%
-  count(publish_period) %>%
-  rename(Metric = publish_period, Value = n) %>%
-  mutate(Metric = paste("Publication Period:", Metric))
+# Combine summary statistics
+combined_summary <- bind_rows(summary_stats, pages_range_count, publish_period_count)
 
-# Combine all summary statistics into one table
-combined_summary <- bind_rows(
-  summary_stats %>% pivot_longer(everything(), names_to = "Metric", values_to = "Value"),
-  pages_range_count,
-  publish_period_count
-)
+# Generate table
+knitr::kable(
+  combined_summary,
+) %>%
+  kable_styling(latex_options = "hold_position")
 
-# Display the combined summary statistics table
-knitr::kable(combined_summary, caption = "Combined summary statistics of the children's book dataset, including average ratings, distribution of cover types, page ranges, and publication periods.")
+
 ```
 
 
@@ -334,16 +349,20 @@ In terms of next steps, expanding the dataset to include more books, especially 
 Finally, incorporating qualitative data, such as reader reviews, could help capture aspects of children's books that are not easily quantifiable but still contribute to their popularity and success.
 
 \newpage
+
 \appendix
 
 # Appendix: Model Details {#sec-model-details}
 
 ## Regression Model Summary
 
+@tbl-regression-results summarizes the regression results, showing the estimated coefficients, median absolute deviations, and credible intervals for each predictor.
 ```{r}
 #| label: tbl-regression-results
 #| echo: false
 #| tbl-cap: "Regression model summary for predicting children's book ratings, including estimated coefficients and credible intervals."
+#| warning: false
+#| message: false
 
 model_summary <- modelsummary(
   list(
@@ -360,10 +379,10 @@ model_summary
 
 ## Convergence Diagnostics
 
-To ensure that the Bayesian hierarchical linear model has converged properly, we used multiple convergence diagnostics. The primary convergence diagnostic used is the **Gelman-Rubin statistic** (R-hat). The R-hat value should ideally be close to 1, indicating that the Markov chains have mixed well and reached convergence. Any R-hat value significantly above 1 suggests non-convergence and needs further investigation.
+To ensure that the Bayesian hierarchical linear model has converged properly, we used multiple convergence diagnostics. The primary convergence diagnostic used is the **Gelman-Rubin statistic** (R-hat). The R-hat value should ideally be close to 1, indicating that the Markov chains have mixed well and reached convergence. Any R-hat value significantly above 1 suggests non-convergence and needs further investigation. In @fig-rhat-diagnostics , we present the R-hat values for each model parameter. 
 
 ```{r}
-#| label: rhat-diagnostics
+#| label: fig-rhat-diagnostics
 #| echo: false
 #| fig-cap: "Gelman-Rubin convergence diagnostic (R-hat) values for each model parameter. All values are close to 1, indicating that the Markov chains have mixed well and achieved convergence."
 
@@ -373,23 +392,26 @@ plot(children_model, plotfun = "rhat")
 
 ### Trace Plots
 
-Another convergence diagnostic involves examining trace plots. Trace plots show the sampled values of each parameter across iterations for each Markov chain. Well-mixed chains with no clear trends suggest that the model has converged.
+Another convergence diagnostic involves examining trace plots. Trace plots show the sampled values of each parameter across iterations for each Markov chain. Well-mixed chains with no clear trends suggest that the model has converged. In @fig-trace-plot , we observe the trace plots for key parameters in the model. 
 
 ```{r}
-#| label: trace-plot
+#| label: fig-trace-plot
 #| echo: false
 #| fig-cap: "Trace plots for key parameters across the Markov chains, showing well-mixed chains with stable values. The lack of discernible patterns or trends confirms that convergence has been reached."
+#| fig-width: 10 
+#| fig-height: 7 
+#| dpi: 300
 
 # Trace plot for key parameters in the model
-plot(children_model, plotfun = "trace")
+plot(children_model, plotfun = "trace",)
 ```
 
 ## Posterior Predictive Checks
 
-Posterior predictive checks are used to assess the goodness-of-fit of the Bayesian model. By simulating data from the posterior distribution, we can compare the simulated data to the observed data to determine if the model adequately represents the data.
+Posterior predictive checks are used to assess the goodness-of-fit of the Bayesian model. By simulating data from the posterior distribution, we can compare the simulated data to the observed data to determine if the model adequately represents the data. @fig-posterior-checks illustrates the results of posterior predictive checks for the Bayesian model. 
 
 ```{r}
-#| label: posterior-checks
+#| label: fig-posterior-checks
 #| echo: false
 #| fig-cap: "Posterior predictive checks showing a comparison between the observed data and simulated data generated from the model's posterior distribution. This helps evaluate whether the model adequately captures the key features of the observed data."
 
@@ -399,26 +421,48 @@ pp_check(children_model)
 
 ## Summary Statistics for Posterior
 
-Below is a summary table of the key parameters in the model, including the estimated means, standard deviations, and 95% credible intervals.
+@tbl-posterior-sum is a summary table of the key parameters in the model, including the estimated means, standard deviations, and 95% credible intervals.
 
 ```{r}
-#| label: posterior-summary
+#| label: tbl-posterior-sum
 #| echo: false
-#| fig-cap: "Summary statistics of the posterior distributions for key model parameters, including posterior means, standard deviations, and 95% credible intervals, which provide insights into the central tendencies and uncertainties of the parameter estimates."
+#| tbl-cap: "Summary statistics of the posterior distributions for key model parameters, including posterior means, standard deviations, and 95% credible intervals, which provide insights into the central tendencies and uncertainties of the parameter estimates."
+#| warning: false
+#| message: false
 
-# Summary of the posterior distributions
-summary(children_model)
+library(broom.mixed)
+library(knitr)
+library(kableExtra)
+library(coda)
+
+# Summarize the posterior distributions into a tidy data frame
+posterior_summary <- broom.mixed::tidyMCMC(
+  as.matrix(children_model), 
+  conf.int = TRUE, 
+  conf.level = 0.95
+)
+
+# Render the summary as a table
+knitr::kable(
+  posterior_summary
+) %>%
+  kable_styling(latex_options = "hold_position", full_width = FALSE)
+
 ```
 
 
 ### Posterior Density Plots
 
-Posterior density plots provide a visual representation of the uncertainty in the model parameters. The density plots show the distribution of possible values for each parameter, which helps in understanding the spread and central tendency.
+Posterior density plots provide a visual representation of the uncertainty in the model parameters. @fig-results-effects show the distribution of possible values for each parameter, which helps in understanding the spread and central tendency.
 
 ```{r}
 #| label: fig-results-effects
 #| echo: false
 #| fig-cap: "Posterior density plots for each model parameter, providing a visual representation of the uncertainty in the parameter estimates. The density curves illustrate the range and central tendency of plausible values derived from the data and priors."
+#| warning: false
+#| fig-width: 10 
+#| fig-height: 7 
+#| dpi: 300
 
 plot(children_model, plotfun = "dens")
 ```
@@ -432,17 +476,15 @@ plot(children_model, plotfun = "dens")
 
 The dataset[@dataset] used in this study, focused on children's book ratings, plays an important role in understanding the elements that make children's literature more appealing. The data, collected from online ratings and reviews, provides valuable insights into what readers—often parents or educators—find most engaging or high-quality in children's books. However, being sourced from an open online platform, the dataset carries inherent limitations, particularly concerning the sampling methodology and data collection biases.
 
-## Data Collection and Challenges
+## Data Collection Challenges and Bias
 
 The ratings data are observational in nature and were gathered without a structured survey framework. Instead, data collection relied on voluntary participation by readers rating and reviewing books online. This voluntary nature of participation presents several challenges, primarily due to the self-selection bias—those who choose to leave reviews may differ systematically from those who do not. For instance, individuals who provide ratings might be particularly passionate about children's books, leading to an overrepresentation of extreme opinions (either very positive or negative). This limits the ability to generalize findings to the broader population of book readers.
+
+Non-response bias is another critical issue in observational datasets like ours. To address this, future studies could implement weighting adjustments to correct for underrepresented groups. For instance, if younger readers or readers from specific socioeconomic backgrounds are less likely to provide ratings, their responses could be weighted more heavily to reflect their actual proportion in the reader population. This technique would help adjust for disparities in participation rates and lead to more accurate estimations of the factors driving book ratings.
 
 ## Stratified Sampling as an Ideal Approach
 
 In an ideal scenario, a stratified sampling methodology would be employed to ensure the diversity of respondents, capturing the full spectrum of reader demographics. Stratified sampling involves dividing the population into subgroups (or strata) based on specific characteristics, such as age, reading frequency, and geographic location, and then sampling from each subgroup. This would ensure that the sample is representative of all reader groups, not just those who are the most vocal online. Such an approach would mitigate the risk of over-representing highly engaged readers and help provide a more balanced view of the factors influencing book ratings.
-
-## Addressing Non-Response Bias
-
-Non-response bias is another critical issue in observational datasets like ours. To address this, future studies could implement weighting adjustments to correct for underrepresented groups. For instance, if younger readers or readers from specific socioeconomic backgrounds are less likely to provide ratings, their responses could be weighted more heavily to reflect their actual proportion in the reader population. This technique would help adjust for disparities in participation rates and lead to more accurate estimations of the factors driving book ratings.
 
 ## Limitations of Observational Data
 
@@ -519,7 +561,6 @@ The data was cleaned and preprocessed by Zien Gao using R[@R], utilizing librari
 
 - **Updates**: There are currently no plans for updates, but future versions could include more attributes or expanded datasets to improve the analysis.
 
-- **Contact**: For any inquiries, please contact Zien Gao via lauragao75@gmail.com.
 
 ## Structure and Access
 
