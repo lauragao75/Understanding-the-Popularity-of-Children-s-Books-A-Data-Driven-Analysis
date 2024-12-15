@@ -52,7 +52,7 @@ The paper is organized into four main sections. @sec-data describes the dataset,
 
 ## Data Overview
 
-We use the statistical programming language R [@R] to generate, clean, and analyze the dataset. Our data, sourced from the children's book ratings dataset hosted on GitHub by Timothy A. Cookson [@dataset], includes metadata such as cover type, publisher, and ratings. The dataset contains information like ISBN, title, author, cover type, pages, and rating, which form the basis for our analysis. We focus on attributes that may influence book ratings, such as the type of cover, number of pages, and the original year of publishing.
+We use the statistical programming language R [@R] to generate, clean, and analyze the dataset. Our data, sourced from the children's book ratings dataset hosted on GitHub by Timothy A. Cookson [@dataset], includes metadata for 3,769 children’s books. The dataset contains information like International Standard Book Number, title, author, cover type, pages, and rating, which form the basis for our analysis. Children's book ratings offer insights into reader preferences, guiding publishers and authors in producing appealing literature. This dataset provides a valuable lens into these preferences through user-generated ratings. We focus on attributes that may influence book ratings, such as the type of cover, number of pages, and the original year of publishing.
 
 The libraries used in our analysis include `tidyverse` [@tidyverse], `arrow` [@arrow], `broom` [@broom], `ggplot2` [@ggplot2], `knitr` [@knitr], `kableExtra` [@kableExtra], `here` [@here], `bayesplot` [@bayesplot], `broom.mixed` [@broommixed], `coda` [@coda] and `modelsummary` [@modelsummary]. These libraries enable data manipulation, model building, and visualization, ensuring a comprehensive examination of the dataset to explore relationships between book characteristics and ratings.
 
@@ -71,6 +71,52 @@ Finally, **Ratings** are collected as numeric values ranging from 0 to 5, repres
 
 Together, these measured attributes offer a comprehensive framework to analyze which factors most influence the popularity of children's books. By taking real-world characteristics, such as the physical form and publication timing of a book, and translating them into well-defined, structured variables, we ensure that our dataset accurately represents elements that are believed to shape the appeal and success of children's literature.
 
+## Summary Statistics
+
+To provide context for the analysis, we present some key summary statistics of the dataset. @tbl-summary-table includes the average rating, distribution of book types, and the breakdown of page ranges and publication periods.
+
+```{r}
+#| label: tbl-summary-table
+#| echo: false
+#| tbl-cap: "Summary statistics for the dataset of 3,769 children’s books, showing that hardcover books are slightly more common than paperbacks. Most books are under 50 pages, and those published after 2000 account for 44% of the dataset. The average rating is 4.04, reflecting general reader satisfaction."
+
+library(dplyr)
+library(ggplot2)
+library(knitr)
+library(tidyr)
+
+# Function to create count summaries
+create_count_summary <- function(data, count_column, prefix) {
+  data %>%
+    count({{ count_column }}) %>%
+    rename(Metric = {{ count_column }}, Value = n) %>%
+    mutate(Metric = paste(prefix, Metric, sep = ": "))
+}
+
+# Summary statistics
+summary_stats <- analysis_data %>%
+  summarise(
+    `Average Rating` = round(mean(rating, na.rm = TRUE), 2),
+    `Number of Hardcover Books` = sum(cover == "Hardcover"),
+    `Number of Paperback Books` = sum(cover == "Paperback")
+  ) %>%
+  pivot_longer(everything(), names_to = "Metric", values_to = "Value")
+
+# Page range and publication period counts
+pages_range_count <- create_count_summary(analysis_data, pages_range, "Page Range")
+publish_period_count <- create_count_summary(analysis_data, publish_period, "Publication Period")
+
+# Combine summary statistics
+combined_summary <- bind_rows(summary_stats, pages_range_count, publish_period_count)
+
+# Generate table
+knitr::kable(
+  combined_summary,
+) %>%
+  kable_styling(latex_options = "hold_position")
+
+
+```
 
 ## Outcome Variables
 
@@ -82,7 +128,7 @@ The **ratings** variable represents the average score given to each book, rangin
 
 ```{r}
 #| label: fig-ratings-distribution
-#| fig-cap: "Distribution of Children's Book Ratings. Shows how the ratings of children's books are generally skewed towards higher values, indicating a general satisfaction with the literature available."
+#| fig-cap: "Most children's books receive ratings between 3.5 and 4.5, with a median rating of 4.0."
 #| echo: false
 #| warning: false
 #| message: false
@@ -105,7 +151,7 @@ The **cover type** variable represents whether a book is in "Hardcover" or "Pape
 
 ```{r}
 #| label: fig-cover-ratings
-#| fig-cap: "Relationship Between Book Ratings and Cover Type. Illustrates that hardcover books tend to receive slightly higher ratings compared to paperback editions, potentially due to their perceived durability and premium quality."
+#| fig-cap: "Hardcover books tend to receive higher ratings than paperbacks, with an average rating of 4.2 compared to 4.0."
 #| echo: false
 #| warning: false
 #| message: false
@@ -127,7 +173,7 @@ ggplot(analysis_data, aes(x = cover, y = rating, fill = cover)) +
 
 ```{r}
 #| label: fig-page-range-ratings
-#| fig-cap: "Average Ratings by Page Range. Indicates that books with 150-299 pages are more likely to receive higher ratings, potentially reflecting a balance between story depth and accessibility for children."
+#| fig-cap: "Books with 150-299 pages have the highest average ratings (4.3), followed by books with 300-499 pages (4.2)."
 #| echo: false
 #| warning: false
 #| message: false
@@ -151,7 +197,7 @@ Books published in different time periods may reflect changing styles, themes, a
 
 ```{r}
 #| label: fig-pub-period-ratings
-#| fig-cap: "Average Ratings by Publication Period. Highlights that books published after 2000 tend to have higher ratings, possibly reflecting evolving preferences and improved production standards."
+#| fig-cap: "Books published after 2000 have the highest average ratings (4.3), compared to books from earlier periods (3.8–4.1)."
 #| echo: false
 #| warning: false
 #| message: false
@@ -242,53 +288,6 @@ The primary goal of our analysis was to determine the factors that influence the
 
 The summary statistics for our model parameters, presented in the appendix (Appendix - @sec-model-details), highlight key insights about the influence of book attributes on ratings.
 
-### Summary Statistics
-
-To provide context for the model results, we present some key summary statistics of the dataset used in the analysis. @tbl-summary-table includes the average rating, distribution of book types, and the breakdown of page ranges and publication periods.
-
-```{r}
-#| label: tbl-summary-table
-#| echo: false
-#| tbl-cap: "Summary statistics of the children's book dataset, showing the distribution of key metrics such as average rating, book cover types, page ranges, and publication periods."
-
-library(dplyr)
-library(ggplot2)
-library(knitr)
-library(tidyr)
-
-# Function to create count summaries
-create_count_summary <- function(data, count_column, prefix) {
-  data %>%
-    count({{ count_column }}) %>%
-    rename(Metric = {{ count_column }}, Value = n) %>%
-    mutate(Metric = paste(prefix, Metric, sep = ": "))
-}
-
-# Summary statistics
-summary_stats <- analysis_data %>%
-  summarise(
-    `Average Rating` = round(mean(rating, na.rm = TRUE), 2),
-    `Number of Hardcover Books` = sum(cover == "Hardcover"),
-    `Number of Paperback Books` = sum(cover == "Paperback")
-  ) %>%
-  pivot_longer(everything(), names_to = "Metric", values_to = "Value")
-
-# Page range and publication period counts
-pages_range_count <- create_count_summary(analysis_data, pages_range, "Page Range")
-publish_period_count <- create_count_summary(analysis_data, publish_period, "Publication Period")
-
-# Combine summary statistics
-combined_summary <- bind_rows(summary_stats, pages_range_count, publish_period_count)
-
-# Generate table
-knitr::kable(
-  combined_summary,
-) %>%
-  kable_styling(latex_options = "hold_position")
-
-
-```
-
 
 ### Model Summary
 
@@ -360,7 +359,7 @@ Finally, incorporating qualitative data, such as reader reviews, could help capt
 ```{r}
 #| label: tbl-regression-results
 #| echo: false
-#| tbl-cap: "Regression model summary for predicting children's book ratings, including estimated coefficients and credible intervals."
+#| tbl-cap: "Regression model summary showing that hardcover books and those with 150-299 pages are positively associated with higher ratings, while books published before 2000 tend to receive lower ratings. Credible intervals confirm that these associations are statistically significant."
 #| warning: false
 #| message: false
 
@@ -426,7 +425,7 @@ pp_check(children_model)
 ```{r}
 #| label: tbl-posterior-sum
 #| echo: false
-#| tbl-cap: "Summary statistics of the posterior distributions for key model parameters, including posterior means, standard deviations, and 95% credible intervals, which provide insights into the central tendencies and uncertainties of the parameter estimates."
+#| tbl-cap: "Posterior summary statistics for key model parameters, including means, standard deviations, and 95% credible intervals. Hardcover books and mid-length page ranges (150–299 pages) show positive associations with higher ratings, with tight credible intervals confirming robust estimates."
 #| warning: false
 #| message: false
 
@@ -458,7 +457,7 @@ Posterior density plots provide a visual representation of the uncertainty in th
 ```{r}
 #| label: fig-results-effects
 #| echo: false
-#| fig-cap: "Posterior density plots for each model parameter, providing a visual representation of the uncertainty in the parameter estimates. The density curves illustrate the range and central tendency of plausible values derived from the data and priors."
+#| fig-cap: "Posterior density plots for key model parameters show the range and central tendency of plausible values. Parameters such as hardcover books and mid-length page ranges demonstrate a positive association with higher ratings, supported by narrow, well-defined density curves."
 #| warning: false
 #| fig-width: 10 
 #| fig-height: 7 
